@@ -1,0 +1,44 @@
+
+
+spring:
+  datasource:
+     master-source:
+      jdbcUrl: jdbc:mysql://123.103.15.174:3306/testet?autoReconnect=true&zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8
+      username: testet
+      password: kjka71j9j
+      minimumIdle: 16
+      maximumPoolSize: 1024
+      connectionTestQuery: SELECT 1 FROM DUAL
+      driverClassName: com.mysql.jdbc.Driver
+      dataSource:
+        cachePrepStmts: true
+        prepStmtCacheSize: 1024
+        prepStmtCacheSqlLimit: 4096
+     slave-a-source:
+      jdbcUrl: jdbc:mysql://123.103.15.174:3306/testet?autoReconnect=true&zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8
+      username: testet
+      password: kjka71j9j
+      minimumIdle: 16
+      maximumPoolSize: 1024
+      connectionTestQuery: SELECT 1 FROM DUAL
+      driverClassName: com.mysql.jdbc.Driver
+      dataSource:
+        cachePrepStmts: true
+        prepStmtCacheSize: 1024
+        prepStmtCacheSqlLimit: 4096
+  redis:
+      database: 0
+      host: 123.103.15.174
+      port: 7114
+      password: cb4628747c1d39468eea3de3128cd7ae
+      timeout: 10000  # 连接超时时长（毫秒）
+      jedis:
+        pool:
+          max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
+          max-wait: -1      # 连接池最大阻塞等待时间（使用负值表示没有限制）
+          max-idle: 10      # 连接池中的最大空闲连接
+          min-idle: 5       # 连接池中的最小空闲连接
+
+file:
+  savePath: /home/et/uploadfiles/
+  domain: http://testimg.wowolive99.com

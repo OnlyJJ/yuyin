@@ -1,0 +1,45 @@
+# Tomcat
+server:
+  tomcat:
+    uri-encoding: UTF-8
+    max-threads: 1000
+    min-spare-threads: 30
+  port: 8089
+  connection-timeout: 5000ms
+  servlet:
+    context-path: /
+
+
+spring:
+    profiles:
+      active: dev
+  # jackson时间格式化
+    jackson:
+      time-zone: GMT+8
+      date-format: yyyy-MM-dd HH:mm:ss
+    servlet:
+      multipart:
+        max-file-size: 100MB
+        max-request-size: 100MB
+        enabled: true
+    mvc:
+      throw-exception-if-no-handler-found: true
+      mapping-suffix: "*.do"
+      view:
+        prefix: /WEB-INF/view/
+        suffix: .jsp
+    resources:
+      add-mappings: false
+      
+    aop:
+      proxy-target-class: true
+      
+wscdn: 
+  domain: http://music.wowolive99.com
+
+logging:
+  config: classpath:logback.xml
+  #开启日志溯源，即根据DocFlag和LogHead进行日志溯源
+  snake: true 
+  
+  

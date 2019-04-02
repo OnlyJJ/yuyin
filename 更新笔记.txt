@@ -1,0 +1,276 @@
+==============================v1.0.4===========================
+
+1、修改数据源配置方式，支持多主从数据源
+
+	application-dev.yml
+
+2、IOS更换包名
+
+	update t_third_config set packager='com.wowo.voice' where packager='com.et.vioce'
+
+3、新增房间音乐表
+
+	CREATE TABLE `t_room_music`  (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `roomId` varchar(20) NULL DEFAULT NULL COMMENT '房间号',
+	  `musicsContext` longtext NULL COMMENT '音乐结果集',
+	  PRIMARY KEY (`id`) USING BTREE,
+	  UNIQUE INDEX `room_uk`(`roomId`) USING BTREE
+	) ENGINE = InnoDB AUTO_INCREMENT = 1 ROW_FORMAT = Compact;
+	
+
+4、新增字段
+
+	ALTER TABLE `t_room_music` 
+	ADD COLUMN `userId` varchar(20) NULL COMMENT '播放者ID' AFTER `id`;
+	ADD COLUMN `updateTime` datetime(0) NULL DEFAULT now() ON UPDATE CURRENT_TIMESTAMP(0) AFTER `musicsContext`;
+	
+	
+5、添加字段备注
+
+	ALTER TABLE `t_pay_record` 
+	MODIFY COLUMN `payType` int(2) NULL DEFAULT 1 COMMENT '1微信APP 2支付宝APP 3苹果支付' AFTER `tradeNo`;
+	
+6、訂單添加索引
+
+	ALTER TABLE `t_pay_record` 
+	ADD INDEX `tradeNo_index`(`tradeNo`);
+	
+7、新增苹果支付产品表
+	CREATE TABLE `t_pay_apple_product`  (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `productId` varchar(32) NOT NULL,
+	  `price` int(10) NOT NULL COMMENT '人民币价格',
+	  `gold` int(11) NULL DEFAULT NULL COMMENT '金币数',
+	  PRIMARY KEY (`id`) USING BTREE
+	) ENGINE = InnoDB AUTO_INCREMENT = 7 COMMENT = '苹果支付产品ID表' ROW_FORMAT = Compact;
+	
+	-- ----------------------------
+	-- Records of t_pay_apple_product
+	-- ----------------------------
+	INSERT INTO `t_pay_apple_product` VALUES (1, 'wowo001', 6, 420);
+	INSERT INTO `t_pay_apple_product` VALUES (2, 'wowo002', 12, 840);
+	INSERT INTO `t_pay_apple_product` VALUES (3, 'wowo003', 30, 2100);
+	INSERT INTO `t_pay_apple_product` VALUES (4, 'wowo004', 98, 6860);
+	INSERT INTO `t_pay_apple_product` VALUES (5, 'wowo005', 198, 13860);
+	INSERT INTO `t_pay_apple_product` VALUES (6, 'wowo006', 488, 34160);
+	
+	
+8、修改备注	
+ALTER TABLE `t_user_account` 
+MODIFY COLUMN `referrer` tinyint(1) NULL DEFAULT 0 COMMENT '0手机 1邮箱 2QQ 3微信 4测试账号 5游客' AFTER `accessToken`;
+
+9、充值记录表新增字段
+
+	ALTER TABLE `t_pay_record`
+	ADD COLUMN `gold`  double(11,2) NULL COMMENT '实际支付金币' AFTER `price`;
+
+	update t_pay_record set gold= price * 100 where payType<>3
+	
+
+10、修复用户状态字段	更改tinyint长度
+	ALTER TABLE `t_user_account`
+	MODIFY COLUMN `status`  tinyint(2) NULL DEFAULT 1 COMMENT '1正常 -1已冻结' AFTER `referrer`;
+
+11、处理一些tinyint长度问题
+
+	ALTER TABLE `t_gift_info`
+	MODIFY COLUMN `buyable`  tinyint(2) NULL DEFAULT 1 COMMENT '是否可购买 1可以，0不可以' AFTER `isShow`,
+	MODIFY COLUMN `status`  tinyint(2) NULL DEFAULT 1 COMMENT '状态 1可用 0不可用' AFTER `buyable`;
+
+	ALTER TABLE `t_relation_queue`
+	MODIFY COLUMN `status`  tinyint(2) NULL DEFAULT 0 COMMENT '0待处理 1已同意 2已拒绝 ' AFTER `receiver`;
+	
+	ALTER TABLE `t_relation_record`
+	MODIFY COLUMN `status`  tinyint(2) NULL DEFAULT 0 COMMENT '1 好友' AFTER `targeUserId`;
+	
+	ALTER TABLE `t_user_account`
+	MODIFY COLUMN `referrer`  tinyint(2) NULL DEFAULT 0 COMMENT '0手机 1邮箱 2QQ 3微信 4微博 5游客' AFTER `accessToken`;
+	
+	ALTER TABLE `t_user_id_pretty`
+	MODIFY COLUMN `status`  tinyint(2) NULL DEFAULT 0 COMMENT '0未使用 1已使用' AFTER `format`;
+	
+	ALTER TABLE `t_user_info`
+	MODIFY COLUMN `sex`  tinyint(2) NULL DEFAULT 1 COMMENT '性别 0女 1男' AFTER `head`,
+	MODIFY COLUMN `role`  tinyint(2) NULL DEFAULT 0 COMMENT '0普通用户 1主播' AFTER `sign`;
+	
+	ALTER TABLE `t_user_send_topper`
+	MODIFY COLUMN `type`  tinyint(2) NULL DEFAULT NULL COMMENT '0总榜，1日榜 2周榜 3月榜' AFTER `exp`;
+	
+
+12、创建关键词表并同步数据 t_black_keyword
+
+
+==============================v1.0.4 end===========================
+
+
+
+==============================v1.0.3===========================
+
+1、t_user_account新增字段：ingot(元宝)
+	ALTER TABLE `t_user_account` 
+	ADD COLUMN `ingot` int(11) NULL DEFAULT 0 COMMENT '元宝，邀请获得' AFTER `jewel`;
+	#初始化元宝数量
+	update t_user_account set ingot = 0 where ingot is null 
+
+
+2、新增交易记录表
+		CREATE TABLE `t_trade_record`  (
+	  `id` bigint(32) NOT NULL AUTO_INCREMENT COMMENT '主键',
+	  `userId` varchar(20) NULL DEFAULT NULL COMMENT '用户ID',
+	  `tradeValue` int(11) NULL DEFAULT NULL COMMENT '交易值',
+	  `tradeType` tinyint(2) NULL DEFAULT NULL COMMENT '交易类型  1扣款 2加款',
+	  `currencyType` tinyint(2) NULL DEFAULT NULL COMMENT '币种类型  0金币  1钻石  2元宝  ',
+	  `remark` varchar(255) NULL DEFAULT NULL COMMENT '交易描述',
+	  `dayCode` varchar(14) NULL DEFAULT NULL COMMENT '日期标志',
+	  `createTime` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',
+	  PRIMARY KEY (`id`) USING BTREE,
+	  INDEX `trade_ik`(`userId`, `tradeType`, `currencyType`, `dayCode`) USING BTREE
+	) ENGINE = InnoDB AUTO_INCREMENT = 1  COMMENT = '用户账务交易表' ROW_FORMAT = Compact;
+
+	
+3、创建邀请相关表
+
+
+	CREATE TABLE `t_invite_prized_record`  (
+	  `id` bigint(32) NOT NULL AUTO_INCREMENT,
+	  `userId` varchar(20) NULL DEFAULT NULL COMMENT '用户ID',
+	  `ingot` bigint(32) NULL DEFAULT 0 COMMENT '累计元宝',
+	  `gold` bigint(32) NULL DEFAULT NULL COMMENT '累计金币',
+	  `createTime` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
+	  `updateTime` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+	  PRIMARY KEY (`id`) USING BTREE,
+	  INDEX `invite_prize_ik`(`userId`) USING BTREE
+	) ENGINE = InnoDB AUTO_INCREMENT = 1  COMMENT = '邀请奖励累计表' ROW_FORMAT = Compact;
+	
+	
+	CREATE TABLE `t_invite_record`  (
+	  `id` bigint(32) NOT NULL AUTO_INCREMENT,
+	  `inviter` varchar(20) NULL DEFAULT NULL COMMENT '邀请者',
+	  `registranter` varchar(20) NULL DEFAULT NULL COMMENT '被邀请者',
+	  `status` tinyint(2) NULL DEFAULT NULL COMMENT '状态 0无效 1有效',
+	  `remark` varchar(128) NULL DEFAULT NULL COMMENT '邀请描述',
+	  `dayCode` varchar(14) NULL DEFAULT NULL COMMENT '邀请日期',
+	  `createTime` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
+	  PRIMARY KEY (`id`) USING BTREE,
+	  UNIQUE INDEX `general_ik`(`inviter`, `status`, `dayCode`) USING BTREE
+	) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT = '邀请记录表'  ROW_FORMAT = Compact;
+	
+
+4、新增礼物特效ID
+
+	ALTER TABLE `t_gift_info` 
+	ADD COLUMN `specialId` int(11) NULL COMMENT '特效ID' AFTER `ico`;
+	
+5、新增网宿CDN配置
+
+	wscdn: 
+ 	 domain: http://music.wowolive99.com
+ 	 
+6、新增音乐表
+
+	CREATE TABLE `t_music_info` (
+	 `id` bigint(32) NOT NULL AUTO_INCREMENT,
+	 `userId` varchar(20) NULL DEFAULT NULL COMMENT '用户ID',
+	 `title` varchar(32) NULL DEFAULT NULL COMMENT '音乐标题',
+	 `author` varchar(20) NULL DEFAULT NULL COMMENT '音乐歌手',
+	 `type` tinyint(2) NULL DEFAULT NULL COMMENT '音乐类型 0原唱 1翻唱 2伴奏',
+	 `url` varchar(255) NULL DEFAULT NULL COMMENT '文件地址',
+	 `size` bigint(11) NULL DEFAULT NULL COMMENT '文件体积',
+	 `downNum` bigint(32) NULL DEFAULT 0 COMMENT '下载次数',
+	 `playNum` bigint(32) NULL DEFAULT 0 COMMENT '播放次数',
+	 `fileSign` varchar(32) NULL DEFAULT NULL COMMENT '文件摘要',
+	 `createTime` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+	 PRIMARY KEY (`id`) USING BTREE,
+	 INDEX `music_sign_ik`(`fileSign`, `size`) USING BTREE
+	  INDEX `music_userId_ik`(`userId`) USING BTREE
+	) ENGINE = InnoDB AUTO_INCREMENT = 1 COMMENT = '用户音乐表' ROW_FORMAT = Compact;
+
+
+7、添加字段备注
+
+	ALTER TABLE `t_app_resource` 
+	MODIFY COLUMN `fileType` tinyint(2) NULL DEFAULT NULL COMMENT '0、帧动画，1、webp或GIF 2、svg' AFTER `title`;
+	
+	
+8、新增web端第三方登录APPID
+
+	INSERT INTO `t_third_config` VALUES (8, 'com.jj.webvoice', '101555230', 'c2701e7f69192ecab6c6da96f94ab1f6', 2, '2019-02-25 14:05:46');
+	
+	INSERT INTO `t_third_config` VALUES (9, 'com.jj.webvoice', 'wx9e9d695364d27851', 'efae92c59222e02dbb3754a2774925da', 3, '2019-02-26 16:15:02');
+
+
+9、礼物表新增字段
+
+	ALTER TABLE `t_gift_info` 
+	ADD COLUMN `expForSender` int(11) NULL DEFAULT 0 COMMENT '赠送者获得经验' AFTER `specialId`,
+	ADD COLUMN `expForReceiver` int(11) NULL DEFAULT 0 COMMENT '接受者获得经验' AFTER `expForSender`,
+	ADD COLUMN `remark` varchar(255) NULL  COMMENT '礼物描述' AFTER `createTime`;
+	
+10、更新logback.xml文件，为日志添加类、行号支持
+
+11、新增背包相关表
+
+
+	CREATE TABLE `t_backpack`  (
+	  `id` bigint(32) NOT NULL AUTO_INCREMENT,
+	  `userId` varchar(20)   NULL DEFAULT NULL COMMENT '用户ID',
+	  `type` tinyint(2) NULL DEFAULT NULL COMMENT '1礼物 2道具',
+	  `correId` varchar(32)   NULL DEFAULT NULL COMMENT '关联值，如：礼物ID、道具ID',
+	  `num` int(11) NULL DEFAULT NULL COMMENT '数量',
+	  `createTime` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+	  `updateTime` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0) COMMENT '更新时间',
+	  PRIMARY KEY (`id`) USING BTREE,
+	  INDEX `backpack_userid_ik`(`userId`) USING BTREE,
+	  UNIQUE INDEX `backpack_user_corre_type_uk`(`userId`, `correId`, `type`) USING BTREE
+	) ENGINE = InnoDB AUTO_INCREMENT = 1  COMMENT = '背包表' ROW_FORMAT = Compact;
+	
+	CREATE TABLE `t_backpack_record`  (
+	  `id` bigint(32) NOT NULL,
+	  `sender` varchar(20)   NULL DEFAULT '0' COMMENT '赠送人ID，0代表系统',
+	  `receiver` varchar(20)   NULL DEFAULT NULL COMMENT '接受者用户ID',
+	  `num` int(11) NULL DEFAULT NULL COMMENT '赠送数量',
+	  `remark` varchar(64)   NULL DEFAULT NULL COMMENT '描述',
+	  `createTime` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP COMMENT '赠送时间',
+	  PRIMARY KEY (`id`) USING BTREE
+	) ENGINE = InnoDB  COMMENT = '背包记录表' ROW_FORMAT = Compact;
+
+	ALTER TABLE `t_backpack_record` 
+	MODIFY COLUMN `id` bigint(32) NOT NULL AUTO_INCREMENT FIRST;
+	
+	
+12、添加邀请规则 被邀请者唯一索引
+
+	ALTER TABLE  `t_invite_record` 
+	ADD UNIQUE INDEX `registranter_uk`(`registranter`);
+	
+13、新增礼物显示字段
+
+	ALTER TABLE `t_gift_info` 
+	ADD COLUMN `isShow` tinyint(2) NULL DEFAULT 1 COMMENT '是否在礼物栏显示 0不显示  1显示' AFTER `rate`;
+	#初始化礼物显示字段
+	update t_gift_info set isShow =1 
+	
+
+=====================================================================
+
+
+1、礼物表增加人民币价格
+
+		ALTER TABLE `t_gift_info` 
+		ADD COLUMN `priceForRMB` double(11, 2) NULL COMMENT '对应人民币价格' AFTER `price`;
+
+		设置默认值
+		ALTER TABLE `t_gift_info` 
+		MODIFY COLUMN `priceForRMB` double(11, 2) NULL DEFAULT 0.00 COMMENT '对应人民币价格' AFTER `price`;
+		
+		
+2、用户账户表新增第三方授权秘钥的token
+
+		ALTER TABLE `t_user_account` 
+		ADD COLUMN `accessToken` varchar(64) NULL COMMENT '第三方拉取授权的秘钥' AFTER `price`;
+		
+		
+3、t_user_account增加loginIp和loginTime
+
+

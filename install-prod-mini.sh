@@ -1,0 +1,1 @@
+mvn clean package -Pprod_mini -U  

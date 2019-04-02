@@ -1,0 +1,1 @@
+mvn clean package -Pdev_mini -U  
